@@ -5,7 +5,6 @@ import android.telephony.TelephonyManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -15,9 +14,8 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.news.common.makeToast
 import com.example.news.data.local.entities.asExternalModel
-import com.example.news.data.network.models.asEntitySavedArticle
 import com.example.news.databinding.FragmentBreakingNewsBinding
-import com.example.news.presentation.adapters.paging.NewsPagingAdapter
+import com.example.news.presentation.adapters.paging.BreakingNewsPagingAdapter
 import com.example.news.presentation.adapters.paging.NewsPagingLoadStateAdapter
 import com.example.news.presentation.ui.fragments.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,7 +36,7 @@ class BreakingNewsFragment : BaseFragment() {
     @Inject
     lateinit var telephonyManager: TelephonyManager
 
-    private lateinit var newsAdapter: NewsPagingAdapter
+    private lateinit var newsAdapter: BreakingNewsPagingAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,17 +50,6 @@ class BreakingNewsFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.breakingNews
-                    .map { it.isLoading }
-                    .distinctUntilChanged()
-                    .collect {
-                        binding.paginationProgressBar.isVisible = it
-                    }
-            }
-        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -81,7 +68,8 @@ class BreakingNewsFragment : BaseFragment() {
                 // Only show the list if refresh succeeds.
                 binding.rvBreakingNews.isVisible = !isListEmpty
                 // Show loading spinner during initial load or refresh.
-                binding.paginationProgressBar.isVisible = loadState.source.refresh is LoadState.Loading
+                binding.paginationProgressBar.isVisible =
+                    loadState.source.refresh is LoadState.Loading
                 // Show the retry state if initial load or refresh fails.
                 binding.retryButton.isVisible = loadState.source.refresh is LoadState.Error
 
@@ -98,13 +86,6 @@ class BreakingNewsFragment : BaseFragment() {
 
         binding.retryButton.setOnClickListener { newsAdapter.retry() }
 
-//        newsAdapter.addLoadStateListener { loadState ->
-//            if (loadState.source.refresh is LoadState.NotLoading && loadState.append.endOfPaginationReached && newsAdapter.itemCount < 1) {
-//                binding.rvBreakingNews.visibility = View.GONE
-//            } else {
-//                binding.rvBreakingNews.visibility = View.VISIBLE
-//            }
-//        }
     }
 
     override fun onDestroy() {
@@ -113,10 +94,10 @@ class BreakingNewsFragment : BaseFragment() {
     }
 
     private fun setupRecyclerView() {
-        newsAdapter = NewsPagingAdapter {
+        newsAdapter = BreakingNewsPagingAdapter {
             val action =
                 BreakingNewsFragmentDirections.actionBreakingNewsFragmentToArticleActivity(
-                    it.asEntitySavedArticle().asExternalModel()
+                    it.asExternalModel()
                 )
             findNavController().navigate(action)
         }

@@ -1,6 +1,5 @@
 package com.example.news.presentation.adapters.paging
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -8,15 +7,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.news.R
-import com.example.news.data.network.models.NetworkArticle
+import com.example.news.data.local.entities.EntityArticles
 import com.example.news.databinding.ArticleViewHolderBinding
 
-class NewsPagingAdapter(private val clickListener: (NetworkArticle) -> Unit) :
-    PagingDataAdapter<NetworkArticle, NewsPagingAdapter.ArticleViewHolder>(DiffUtilCallback) {
+class BreakingNewsPagingAdapter(private val clickListener: (EntityArticles) -> Unit) :
+    PagingDataAdapter<EntityArticles, BreakingNewsPagingAdapter.ArticleViewHolder>(DiffUtilCallback) {
 
     class ArticleViewHolder(private val binding: ArticleViewHolderBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(article: NetworkArticle) {
+        fun bind(article: EntityArticles) {
             binding.apply {
                 ivArticleImage.load(article.urlToImage) {
                     crossfade(600)
@@ -45,12 +44,12 @@ class NewsPagingAdapter(private val clickListener: (NetworkArticle) -> Unit) :
         }
     }
 
-    object DiffUtilCallback : DiffUtil.ItemCallback<NetworkArticle>() {
-        override fun areItemsTheSame(oldItem: NetworkArticle, newItem: NetworkArticle): Boolean {
+    object DiffUtilCallback : DiffUtil.ItemCallback<EntityArticles>() {
+        override fun areItemsTheSame(oldItem: EntityArticles, newItem: EntityArticles): Boolean {
             return oldItem.url == newItem.url
         }
 
-        override fun areContentsTheSame(oldItem: NetworkArticle, newItem: NetworkArticle): Boolean {
+        override fun areContentsTheSame(oldItem: EntityArticles, newItem: EntityArticles): Boolean {
             return oldItem == newItem
         }
 

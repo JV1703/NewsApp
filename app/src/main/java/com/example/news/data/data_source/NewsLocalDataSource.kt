@@ -1,12 +1,14 @@
 package com.example.news.data.data_source
 
 import androidx.paging.PagingSource
+import androidx.room.Query
+import com.example.news.common.Constants
 import com.example.news.data.local.dao.ArticleDao
 import com.example.news.data.local.dao.ArticleRemoteKeyDao
 import com.example.news.data.local.entities.EntityArticleRemoteKey
 import com.example.news.data.local.entities.EntityArticles
 import com.example.news.data.local.entities.EntitySavedArticle
-import com.example.news.data.network.models.NetworkArticle
+import com.example.news.data.local.entities.EntitySearchArticles
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -21,21 +23,28 @@ class NewsLocalDataSource @Inject constructor(
 
     suspend fun deleteArticle(article: EntitySavedArticle) = articleDao.deleteSavedArticle(article)
 
-    suspend fun insertAllArticles(articles: List<EntityArticles>) = articleDao.insertAllArticles(articles)
-
-    fun pagingSource(query: String): PagingSource<Int, EntityArticles> =
-        articleDao.pagingSource(query)
+    suspend fun insertAllArticles(articles: List<EntityArticles>) =
+        articleDao.insertAllArticles(articles)
 
     suspend fun deleteAllArticles() = articleDao.deleteAllArticle()
 
     suspend fun insertAllRemoteKey(remoteKey: List<EntityArticleRemoteKey>) =
         articleRemoteKeyDao.insertAllRemoteKeys(remoteKey)
 
-    suspend fun remoteKeysArticleId(id: String): EntityArticleRemoteKey? =
-        articleRemoteKeyDao.remoteKeysRepoId(id)
+    suspend fun remoteKeysArticleId(
+        category: Constants.KeyCategory,
+        id: String
+    ): EntityArticleRemoteKey? =
+        articleRemoteKeyDao.remoteKeysRepoId(category, id)
 
-    suspend fun clearRemoteKeys() = articleRemoteKeyDao.clearRemoteKeys()
+    suspend fun clearRemoteKeys(category: Constants.KeyCategory) = articleRemoteKeyDao.clearRemoteKeys(category)
 
-    fun getAllArticles(): PagingSource<Int, NetworkArticle> = articleDao.getAllArticles()
+    fun getAllArticles(): PagingSource<Int, EntityArticles> = articleDao.getAllArticles()
+
+    suspend fun insertAllSearchArticles(articles: List<EntitySearchArticles>) = articleDao.insertAllSearchArticles(articles)
+
+    suspend fun deleteAllSearchedArticles() = articleDao.deleteAllSearchedArticles()
+
+    fun searchArticles(query: String): PagingSource<Int, EntitySearchArticles> = articleDao.searchArticles(query)
 
 }

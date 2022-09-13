@@ -13,22 +13,20 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.cachedIn
+import androidx.paging.PagingData
 import com.example.news.NewsApplication
-import com.example.news.common.networkResultHandler
 import com.example.news.data.local.entities.EntitySavedArticle
+import com.example.news.data.local.entities.EntitySearchArticles
 import com.example.news.data.repository.NewsRepository
+import com.example.news.presentation.adapters.paging.BreakingNewsRemoteMediator
 import com.example.news.presentation.adapters.paging.NETWORK_PAGE_SIZE
-import com.example.news.presentation.adapters.paging.NewsPagingSource
-import com.example.news.presentation.adapters.paging.NewsRemoteMediator
+import com.example.news.presentation.adapters.paging.SearchNewsRemoteMediator
 import com.example.news.presentation.ui.fragments.breaking.BreakingNewsUiState
-import com.example.news.presentation.ui.fragments.search_news.SearchNewsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,57 +39,68 @@ class NewsViewModel @Inject constructor(
     private val _breakingNews = MutableStateFlow(BreakingNewsUiState())
     val breakingNews get() = _breakingNews.asStateFlow()
 
-    private val _searchNews = MutableStateFlow(SearchNewsUiState())
-    val searchNews = _searchNews.asStateFlow()
+//    private val _searchNews = MutableStateFlow(SearchNewsUiState())
+//    val searchNews = _searchNews.asStateFlow()
 
     init {
     }
 
-    private val _breakingNewsPaging = Pager(
-        config = PagingConfig(
-            pageSize = NETWORK_PAGE_SIZE,
-            enablePlaceholders = false
-        ),
-        pagingSourceFactory = { NewsPagingSource(newsRepository, "us") }
-    ).flow.cachedIn(viewModelScope)
-
-//        @OptIn(ExperimentalPagingApi::class)
 //    private val _breakingNewsPaging = Pager(
-//        config = PagingConfig(pageSize = NETWORK_PAGE_SIZE),
-//        remoteMediator = NewsRemoteMediator(newsRepository, getSimCardCountryCode()),
-//    ) {
-//        newsRepository.getAllArticles()
-//    }.flow
+//        config = PagingConfig(
+//            pageSize = NETWORK_PAGE_SIZE,
+//            enablePlaceholders = false
+//        ),
+//        pagingSourceFactory = { BreakingNewsPagingSource(newsRepository, "us") }
+//    ).flow.cachedIn(viewModelScope)
+
+    @OptIn(ExperimentalPagingApi::class)
+    private val _breakingNewsPaging = Pager(
+        config = PagingConfig(pageSize = NETWORK_PAGE_SIZE),
+        remoteMediator = BreakingNewsRemoteMediator(newsRepository, getSimCardCountryCode()),
+    ) {
+        newsRepository.getAllArticles()
+    }.flow
     val breakingNewsPaging get() = _breakingNewsPaging
 
+    @OptIn(ExperimentalPagingApi::class)
     fun searchNews(
-        query: String,
-        category: String? = null,
-        pageNumber: Int = 1
+        query: String
+    ): Flow<PagingData<EntitySearchArticles>> = Pager(
+        config = PagingConfig(pageSize = NETWORK_PAGE_SIZE),
+        remoteMediator = SearchNewsRemoteMediator(query, newsRepository)
     ) {
+        newsRepository.searchArticles(query)
+    }.flow
 
-        _searchNews.update { it.copy(isLoading = true) }
 
-        viewModelScope.launch {
-            try {
-                if (hasInternetConnection()) {
-                    val response =
-                        newsRepository.searchNews(query, category, pageNumber)
-                    val result = networkResultHandler(response)
-                    _searchNews.update { it.copy(data = result) }
-                } else {
-                    _searchNews.update { it.copy(message = "No internet connection") }
-                }
-            } catch (t: Throwable) {
-                when (t) {
-                    is IOException -> _searchNews.update { it.copy(message = "No internet connection") }
-                    else -> _searchNews.update { it.copy(message = "Something went wrong") }
-                }
-            } finally {
-                _searchNews.update { it.copy(isLoading = false) }
-            }
-        }
-    }
+//    fun searchNews(
+//        query: String,
+//        category: String? = null,
+//        pageNumber: Int = 1
+//    ) {
+//
+//        _searchNews.update { it.copy(isLoading = true) }
+//
+//        viewModelScope.launch {
+//            try {
+//                if (hasInternetConnection()) {
+//                    val response =
+//                        newsRepository.searchNews(query, category, pageNumber)
+//                    val result = networkResultHandler(response)
+//                    _searchNews.update { it.copy(data = result) }
+//                } else {
+//                    _searchNews.update { it.copy(message = "No internet connection") }
+//                }
+//            } catch (t: Throwable) {
+//                when (t) {
+//                    is IOException -> _searchNews.update { it.copy(message = "No internet connection") }
+//                    else -> _searchNews.update { it.copy(message = "Something went wrong") }
+//                }
+//            } finally {
+//                _searchNews.update { it.copy(isLoading = false) }
+//            }
+//        }
+//    }
 
     fun saveArticle(article: EntitySavedArticle) =
         viewModelScope.launch { newsRepository.upsert(article) }

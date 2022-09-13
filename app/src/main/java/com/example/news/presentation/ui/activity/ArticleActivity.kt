@@ -6,10 +6,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.navArgs
 import com.example.news.common.makeToast
+import com.example.news.common.observeOnce
 import com.example.news.data.model.asEntitySavedArticle
 import com.example.news.databinding.ActivityArticleBinding
 import com.example.news.presentation.ui.ArticleViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ArticleActivity : AppCompatActivity() {
 
     private lateinit var _binding: ActivityArticleBinding
@@ -25,6 +28,7 @@ class ArticleActivity : AppCompatActivity() {
 
         binding.webView.apply {
             webViewClient = WebViewClient()
+            settings.javaScriptEnabled = true
             loadUrl(navArg.article.url)
         }
 
@@ -35,12 +39,13 @@ class ArticleActivity : AppCompatActivity() {
     }
 
     private fun saveArticle() {
-        viewModel.getSavedNews().observe(this) { savedNews ->
+        viewModel.getSavedNews().observeOnce(this) { savedNews ->
             if (savedNews.filter { it.url == navArg.article.url }.isNotEmpty()) {
+                makeToast("Article Saved, repeated")
             } else {
                 viewModel.saveArticle(navArg.article.asEntitySavedArticle())
+                makeToast("Article Saved")
             }
-            makeToast("Article Saved")
         }
     }
 }

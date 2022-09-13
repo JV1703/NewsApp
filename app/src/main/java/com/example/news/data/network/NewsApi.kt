@@ -19,7 +19,9 @@ interface NewsApi {
     suspend fun searchForNews(
         @Query("q") query: String,
         @Query("category") category: String? = null,
-        @Query("page") pageNumber: Int = 1
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int? = 20,
+        @Query("sortBy") sortBy: String? = null /*relevancy, popularity, publishedAt*/
     ): Response<NetworkNewsResponse>
 
 }

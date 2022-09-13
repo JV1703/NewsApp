@@ -21,7 +21,9 @@ class NewsRemoteDataSource @Inject constructor(
     suspend fun searchNews(
         query: String,
         category: String? = null,
-        pageNumber: Int = 1
-    ) = withContext(ioDispatcher) { api.searchForNews(query, category, pageNumber) }
+        page: Int = 1,
+        pageSize: Int? = 20,
+        sortBy: String? = null /*relevancy, popularity, publishedAt*/
+    ) = withContext(ioDispatcher) { api.searchForNews(query, category, page, pageSize) }
 
 }

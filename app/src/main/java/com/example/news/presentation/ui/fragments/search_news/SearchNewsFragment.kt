@@ -1,30 +1,29 @@
 package com.example.news.presentation.ui.fragments.search_news
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.news.common.NetworkResult
 import com.example.news.common.makeToast
 import com.example.news.data.local.entities.asExternalModel
-import com.example.news.data.network.models.asEntitySavedArticle
 import com.example.news.databinding.FragmentSearchNewsBinding
-import com.example.news.presentation.adapters.recycler_view.NewsAdapter
+import com.example.news.presentation.adapters.paging.NewsPagingLoadStateAdapter
+import com.example.news.presentation.adapters.paging.SearchNewsPagingAdapter
 import com.example.news.presentation.ui.fragments.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -33,11 +32,9 @@ class SearchNewsFragment : BaseFragment() {
     private var _binding: FragmentSearchNewsBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var newsAdapter: NewsAdapter
+    private lateinit var newsAdapter: SearchNewsPagingAdapter
 
     private val TAG = "SearchNewsFragment"
-
-//    private val viewModel: NewsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,42 +51,31 @@ class SearchNewsFragment : BaseFragment() {
         debouncingTextListener()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.searchNews
-                    .map { it.isLoading }
-                    .distinctUntilChanged()
-                    .collect {
-                        binding.paginationProgressBar.isVisible = it
-                    }
-            }
-        }
+            newsAdapter.loadStateFlow.collect { loadState ->
+                val isListEmpty =
+                    loadState.refresh is LoadState.NotLoading && newsAdapter.itemCount == 0
+                // show empty list
+                binding.emptyList.isVisible = isListEmpty
+                // Only show the list if refresh succeeds.
+                binding.rvSearchNews.isVisible = !isListEmpty
+                // Show loading spinner during initial load or refresh.
+                binding.paginationProgressBar.isVisible =
+                    loadState.source.refresh is LoadState.Loading
+                // Show the retry state if initial load or refresh fails.
+                binding.retryButton.isGone = loadState.source.refresh is LoadState.Error
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.searchNews.collect { uiState ->
-                    when (uiState.data) {
-                        is NetworkResult.Success -> {
-                            newsAdapter.submitList(uiState.data.data?.networkArticles?.map {
-                                it.asEntitySavedArticle().asExternalModel()
-                            })
-                        }
-                        is NetworkResult.Error -> {
-                            uiState.data.message?.let { message ->
-                                Log.e(TAG, message)
-                                Log.i(TAG, "network error message toast")
-                                makeToast(message)
-                            }
-                        }
-                        else -> {
-                            if (!uiState.isLoading && binding.etSearch.text.isNotEmpty()) {
-                                Log.i(TAG, "uistate message toast")
-                                makeToast(uiState.message)
-                            }
-                        }
-                    }
+                // Toast on any error, regardless of whether it came from RemoteMediator or PagingSource
+                val errorState = loadState.source.append as? LoadState.Error
+                    ?: loadState.source.prepend as? LoadState.Error
+                    ?: loadState.append as? LoadState.Error
+                    ?: loadState.prepend as? LoadState.Error
+                errorState?.let {
+                    makeToast("\uD83D\uDE28 Wooops ${it.error}")
                 }
             }
         }
+
+        binding.retryButton.setOnClickListener { newsAdapter.retry() }
     }
 
     override fun onDestroy() {
@@ -98,13 +84,16 @@ class SearchNewsFragment : BaseFragment() {
     }
 
     private fun setupRecyclerView() {
-        newsAdapter = NewsAdapter {
+        newsAdapter = SearchNewsPagingAdapter {
             val action =
-                SearchNewsFragmentDirections.actionSearchNewsFragmentToArticleActivity(it)
+                SearchNewsFragmentDirections.actionSearchNewsFragmentToArticleActivity(it.asExternalModel())
             findNavController().navigate(action)
         }
         binding.rvSearchNews.apply {
-            adapter = newsAdapter
+            adapter = newsAdapter.withLoadStateHeaderAndFooter(
+                header = NewsPagingLoadStateAdapter { newsAdapter.retry() },
+                footer = NewsPagingLoadStateAdapter { newsAdapter.retry() }
+            )
             layoutManager = LinearLayoutManager(requireContext())
         }
     }
@@ -117,7 +106,16 @@ class SearchNewsFragment : BaseFragment() {
                 delay(500L)
                 editable?.let {
                     if (editable.toString().isNotEmpty()) {
-                        viewModel.searchNews(editable.toString())
+//                        viewModel.searchNews(editable.toString())
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                                viewModel.searchNews(editable.toString())
+                                    .collectLatest { pagingData ->
+                                        newsAdapter.submitData(pagingData)
+
+                                    }
+                            }
+                        }
                     }
                 }
             }

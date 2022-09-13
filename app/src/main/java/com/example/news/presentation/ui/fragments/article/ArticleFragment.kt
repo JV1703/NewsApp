@@ -32,14 +32,15 @@ class ArticleFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.webView.apply {
-            webViewClient = WebViewClient()
-            loadUrl(navArg.article.url)
-        }
+//        binding.webView.apply {
+//            webViewClient = WebViewClient()
+//            settings.javaScriptEnabled = true
+//            loadUrl(navArg.article.url)
+//        }
 
-        binding.fab.setOnClickListener {
-            saveArticle()
-        }
+//        binding.fab.setOnClickListener {
+//            saveArticle()
+//        }
 
     }
 
@@ -48,14 +49,15 @@ class ArticleFragment : BaseFragment() {
         super.onDestroy()
     }
 
-    private fun saveArticle() {
-        viewModel.getSavedNews().observe(viewLifecycleOwner) { savedNews ->
-            if (savedNews.filter { it.url == navArg.article.url }.isNotEmpty()) {
-            } else {
-                viewModel.saveArticle(navArg.article.asEntitySavedArticle())
-            }
-            makeToast("Article Saved")
-        }
-    }
+//    private fun saveArticle() {
+//        viewModel.getSavedNews().observe(viewLifecycleOwner) { savedNews ->
+//            if (savedNews.filter { it.url == navArg.article.url }.isNotEmpty()) {
+//                makeToast("Article Saved, repeated")
+//            } else {
+//                viewModel.saveArticle(navArg.article.asEntitySavedArticle())
+//                makeToast("Article Saved")
+//            }
+//        }
+//    }
 
 }

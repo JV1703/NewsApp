@@ -4,6 +4,7 @@ package com.example.news.data.network.models
 import android.os.Parcelable
 import com.example.news.data.local.entities.EntityArticles
 import com.example.news.data.local.entities.EntitySavedArticle
+import com.example.news.data.local.entities.EntitySearchArticles
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
@@ -42,6 +43,17 @@ fun NetworkArticle.asEntitySavedArticle() = EntitySavedArticle(
 )
 
 fun NetworkArticle.asEntityArticles() = EntityArticles(
+    author = author,
+    content = content,
+    description = description,
+    publishedAt = publishedAt,
+    source = source,
+    title = title,
+    url = url,
+    urlToImage = urlToImage
+)
+
+fun NetworkArticle.asEntitySearchArticles() = EntitySearchArticles(
     author = author,
     content = content,
     description = description,

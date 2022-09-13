@@ -10,7 +10,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-const val NETWORK_PAGE_SIZE = 5
+const val NETWORK_PAGE_SIZE = 20
 
 class NewsPagingSource @Inject constructor(
     private val repository: NewsRepository,
