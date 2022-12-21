@@ -9,6 +9,7 @@ import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
+import okhttp3.mockwebserver.MockWebServer
 
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [DbModule::class])
@@ -19,5 +20,8 @@ object TestDbModule {
         return Room.inMemoryDatabaseBuilder(context, ArticleDatabase::class.java)
             .allowMainThreadQueries().build()
     }
+
+    @Provides
+    fun mockWebServer(): MockWebServer = MockWebServer()
 
 }

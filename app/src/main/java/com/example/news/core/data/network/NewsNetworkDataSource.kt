@@ -1,5 +1,7 @@
 package com.example.news.core.data.network
 
+import com.example.news.core.data.network.models.NetworkNewsResponse
+import retrofit2.Response
 import javax.inject.Inject
 
 class NewsNetworkDataSource @Inject constructor(
@@ -11,7 +13,9 @@ class NewsNetworkDataSource @Inject constructor(
         category: String? = null,
         page: Int = 1,
         pageSize: Int? = 20,
-    ) = api.getNews(countryCode, category, page, pageSize)
+    ): Response<NetworkNewsResponse> {
+        return api.getNews(countryCode, category, page, pageSize)
+    }
 
     suspend fun searchNews(
         query: String,

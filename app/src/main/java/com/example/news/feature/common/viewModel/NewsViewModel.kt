@@ -24,9 +24,12 @@ class NewsViewModel @Inject constructor(
         const val SAVED_SEARCH_QUERY = "search_query"
     }
 
+    init {
+        Log.i("NewsViewModel", "initialized")
+    }
+
     val breakingNewsPaging = newsUseCase.getBreakingNews()
-    val savedSearchQuery: String? = savedStateHandle[SAVED_SEARCH_QUERY]
-    val searchQuery = MutableStateFlow("")
+    private val searchQuery = MutableStateFlow("")
     val savedNews: Flow<List<Article>> = newsUseCase.getAllSaveArticles()
 
     fun saveSearchQuery(searchQuery: String) {
@@ -50,8 +53,6 @@ class NewsViewModel @Inject constructor(
         viewModelScope.launch { newsUseCase.deleteSavedArticle(articleUrl) }
 
     override fun onCleared() {
-        Log.i("NewsViewModel", "onCleared: Triggered")
-        savedStateHandle[SAVED_SEARCH_QUERY] = ""
         super.onCleared()
     }
 

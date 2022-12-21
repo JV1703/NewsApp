@@ -4,7 +4,6 @@ import androidx.paging.PagingSource
 import androidx.room.*
 import com.example.news.core.data.local.entities.EntityArticle
 import com.example.news.core.data.local.entities.EntitySavedArticle
-import com.example.news.core.data.local.entities.EntitySearchArticles
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,15 +34,7 @@ interface ArticleDao {
     @Query("SELECT * FROM articles")
     fun getAllArticles(): PagingSource<Int, EntityArticle>
 
-    // Search Remote Mediator
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAllSearchArticles(articles: List<EntitySearchArticles>)
-
-    @Query("DELETE FROM search_articles")
-    suspend fun deleteAllSearchedArticles()
-
-    @Query("SELECT * FROM search_articles WHERE title LIKE  '%' || :query || '%'")
-    fun searchArticles(query: String): PagingSource<Int, EntitySearchArticles>
+    @Query("SELECT * FROM articles")
+    fun getAllEntityArticles(): Flow<List<EntityArticle>>
 
 }

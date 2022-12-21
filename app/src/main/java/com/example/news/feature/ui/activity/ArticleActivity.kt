@@ -1,10 +1,8 @@
 package com.example.news.feature.ui.activity
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
@@ -64,30 +62,7 @@ class ArticleActivity : AppCompatActivity() {
                     }
 
                 }
-
-
             }
-
-//            webViewClient = object: WebViewClient(){
-//
-//                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-//                    binding.progressInd.isGone = false
-//                    super.onPageStarted(view, url, favicon)
-//                }
-//
-//                override fun onPageFinished(view: WebView?, url: String?) {
-//                    binding.progressInd.isGone = true
-//                    super.onPageFinished(view, url)
-//                }
-//            }
-        }
-
-    }
-
-    private val webViewClient = object : WebViewClient() {
-        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-
-            super.onPageStarted(view, url, favicon)
         }
     }
 }

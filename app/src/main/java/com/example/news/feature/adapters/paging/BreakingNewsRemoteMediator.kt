@@ -1,5 +1,6 @@
 package com.example.news.feature.adapters.paging
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -8,6 +9,7 @@ import com.example.news.core.common.NetworkResource
 import com.example.news.core.data.local.entities.EntityArticle
 import com.example.news.core.data.local.entities.EntityArticleRemoteKey
 import com.example.news.core.repository.NewsRepository
+import timber.log.Timber
 import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
@@ -21,7 +23,7 @@ class BreakingNewsRemoteMediator @Inject constructor(
         loadType: LoadType,
         state: PagingState<Int, EntityArticle>,
     ): MediatorResult {
-
+        Log.e("Shit", "triggered")
         val page = when (loadType) {
             LoadType.REFRESH -> {
                 val remoteKey = getClosestRemoteKeys(state)
@@ -83,6 +85,8 @@ class BreakingNewsRemoteMediator @Inject constructor(
                 return MediatorResult.Success(endOfPaginationReached = endOfPagination)
             }
             is NetworkResource.Error -> {
+                Timber.e("shit: ${networkResponse.errMsg}")
+                Log.e("Shit", "${networkResponse.errMsg}")
                 return MediatorResult.Error(throwable = Exception(networkResponse.errMsg))
             }
             is NetworkResource.Empty -> {

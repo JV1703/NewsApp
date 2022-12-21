@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -64,7 +65,7 @@ class BreakingNewsFragment : Fragment() {
                 binding.paginationProgressBar.isVisible =
                     loadState.source.refresh is LoadState.Loading
                 // Show the retry state if initial load or refresh fails.
-                binding.retryButton.isVisible = loadState.source.refresh is LoadState.Error
+                binding.retryButton.isGone = loadState.source.refresh !is LoadState.Error
                 // Toast on any error, regardless of whether it came from RemoteMediator or PagingSource
 
                 val errorState = loadState.source.append as? LoadState.Error

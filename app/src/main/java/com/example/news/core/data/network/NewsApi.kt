@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface NewsApi {
 
-    @GET("top-headlines/")
+    @GET("top-headlines")
     suspend fun getNews(
         @Query("country") countryCode: String = "us",
         @Query("category") category: String? = null,
@@ -15,7 +15,7 @@ interface NewsApi {
         @Query("pageSize") pageSize: Int? = 20,
     ): Response<NetworkNewsResponse>
 
-    @GET("everything/")
+    @GET("everything")
     suspend fun searchForNews(
         @Query("q") query: String,
         @Query("category") category: String? = null,
